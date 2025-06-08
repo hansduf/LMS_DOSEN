@@ -248,7 +248,7 @@
                         <p class="mt-1 text-sm text-red-500">{{ $message }}</p>
                     @enderror
                 </div>
-
+                
                 <!-- Delete Account Button -->
                 <button type="submit" class="flex items-center bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition duration-150 ease-in-out">
                     <i class="bi bi-trash mr-2"></i>
