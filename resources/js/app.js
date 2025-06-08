@@ -36,8 +36,94 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Fungsi untuk menandai halaman aktif
+    function setActivePage() {
+        const currentPath = window.location.pathname;
+        const menuItems = document.querySelectorAll('aside a');
+        
+        menuItems.forEach(item => {
+            // Reset semua item ke state default
+            item.classList.remove('bg-[#2B2C32]');
+            item.classList.remove('scale-110');
+            item.classList.remove('active');
+            
+            const icon = item.querySelector('i');
+            if (icon) {
+                icon.classList.remove('text-[#5EBAB4]');
+                icon.style.textShadow = 'none';
+            }
+
+            // Dapatkan href dari item
+            const href = item.getAttribute('href');
+            
+            // Periksa apakah current path cocok dengan href
+            if (href) {
+                // Ekstrak nama route dari href
+                const routeName = href.split('/').pop();
+                const currentRoute = currentPath.split('/').pop();
+                
+                // Jika route name cocok atau path sama persis
+                if (routeName === currentRoute || href === currentPath) {
+                    // Tambahkan class active
+                    item.classList.add('bg-[#2B2C32]');
+                    item.classList.add('scale-110');
+                    item.classList.add('active');
+                    
+                    // Tambahkan efek glow pada icon
+                    if (icon) {
+                        icon.classList.add('text-[#5EBAB4]');
+                        icon.style.textShadow = '0 0 10px rgba(94, 186, 180, 0.5)';
+                    }
+                }
+            }
+        });
+    }
+    
+    // Fungsi untuk menambahkan efek hover
+    function addHoverEffects() {
+        const menuItems = document.querySelectorAll('aside a');
+        
+        menuItems.forEach(item => {
+            item.addEventListener('mouseenter', function() {
+                if (!this.classList.contains('active')) {
+                    this.style.transform = 'scale(1.1)';
+                    this.style.transition = 'all 0.3s ease';
+                    
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        icon.style.color = '#5EBAB4';
+                        icon.style.transition = 'all 0.3s ease';
+                    }
+                }
+            });
+            
+            item.addEventListener('mouseleave', function() {
+                if (!this.classList.contains('active')) {
+                    this.style.transform = 'scale(1)';
+                    
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        icon.style.color = '#EBEBEB';
+                    }
+                }
+            });
+        });
+    }
+    
     adjustSidebar();
+    setActivePage();
+    addHoverEffects();
     window.addEventListener('resize', adjustSidebar);
+    
+    // Tambahkan event listener untuk perubahan URL
+    window.addEventListener('popstate', setActivePage);
+    
+    // Tambahkan event listener untuk setiap link di sidebar
+    document.querySelectorAll('aside a').forEach(link => {
+        link.addEventListener('click', () => {
+            setTimeout(setActivePage, 100); // Tunggu sebentar untuk memastikan URL sudah berubah
+        });
+    });
     
     // Hamburger button toggle
     sidebarToggle.addEventListener('click', () => {

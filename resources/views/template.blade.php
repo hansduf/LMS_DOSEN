@@ -94,10 +94,13 @@
                 </a>
             </li>
             <li>
-                <a href="#" class="flex items-center justify-center p-2 text-[#EBEBEB] rounded-lg hover:bg-[#2B2C32] transform hover:scale-110 transition-transform duration-300" data-tippy-content="Logout">
-                    <i class="bi bi-box-arrow-left text-[24px]"></i>
-                    <span class="ml-3 font-normal hidden">Logout</span>
-                </a>
+                <form method="POST" action="{{ route('logout') }}" class="m-0">
+                    @csrf
+                    <button type="submit" class="w-full flex items-center justify-center p-2 text-[#EBEBEB] rounded-lg hover:bg-[#2B2C32] transform hover:scale-110 transition-transform duration-300" data-tippy-content="Logout">
+                        <i class="bi bi-box-arrow-left text-[24px]"></i>
+                        <span class="ml-3 font-normal hidden">Logout</span>
+                    </button>
+                </form>
             </li>
         </ul>
     </div>
