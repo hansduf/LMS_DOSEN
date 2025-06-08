@@ -29,3 +29,7 @@ Route::get('/students', function () {
 Route::get('/schedule', function () {
     return view('schedule.schedule');
 })->name('schedule');
+
+Route::get('/profile', function () {
+    return view('profile.profile');
+})->name('profile');

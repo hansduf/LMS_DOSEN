@@ -88,7 +88,7 @@
         <!-- Bottom Menu -->
         <ul class="space-y-4 font-medium absolute bottom-8 left-4 right-4 transition-all duration-300">
             <li>
-                <a href="" class="flex items-center justify-center p-2 text-[#EBEBEB] rounded-lg hover:bg-[#2B2C32] transform hover:scale-110 transition-transform duration-300" data-tippy-content="Profile">
+                <a href="{{ route('profile') }}" class="flex items-center justify-center p-2 text-[#EBEBEB] rounded-lg hover:bg-[#2B2C32] transform hover:scale-110 transition-transform duration-300" data-tippy-content="Profile">
                     <i class="bi bi-person-circle text-[24px]"></i>
                     <span class="ml-3 font-normal hidden">Profile</span>
                 </a>
