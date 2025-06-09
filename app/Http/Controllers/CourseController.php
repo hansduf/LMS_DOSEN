@@ -283,6 +283,26 @@ class CourseController extends Controller
             ->with('success', 'Materi berhasil dihapus');
     }
 
+    public function updateMaterial(Request $request, Course $course, Material $material)
+    {
+        $this->authorize('update', $course);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'external_link' => 'nullable|url'
+        ]);
+
+        $material->update([
+            'title' => $request->title,
+            'description' => $request->description,
+            'external_link' => $request->external_link
+        ]);
+
+        return redirect()->route('courses.show', $course)
+            ->with('success', 'Materi berhasil diperbarui');
+    }
+
     // Attendance Methods
     public function storeAttendance(Request $request, Course $course)
     {
@@ -407,5 +427,27 @@ class CourseController extends Controller
         $studentSubmission = $submissions->where('student_id', Auth::id())->first();
 
         return view('course.assignment', compact('course', 'assignment', 'submissions', 'studentSubmission'));
+    }
+
+    public function updateAssignment(Request $request, Course $course, Assignment $assignment)
+    {
+        $this->authorize('update', $course);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'due_date' => 'required|date|after:now',
+            'attachment_link' => 'nullable|url'
+        ]);
+
+        $assignment->update([
+            'title' => $request->title,
+            'description' => $request->description,
+            'due_date' => $request->due_date,
+            'attachment_link' => $request->attachment_link
+        ]);
+
+        return redirect()->route('courses.show', $course)
+            ->with('success', 'Tugas berhasil diperbarui');
     }
 } 

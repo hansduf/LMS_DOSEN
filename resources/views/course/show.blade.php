@@ -108,6 +108,15 @@
                                     </div>
                                     <div class="mt-2 md:mt-0 flex gap-2">
                                         @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
+                                            <button 
+                                                class="text-blue-400 hover:text-blue-300 edit-material-btn"
+                                                data-id="{{ $item['data']->id }}"
+                                                data-title="{{ $item['data']->title }}"
+                                                data-description="{{ $item['data']->description }}"
+                                                data-link="{{ $item['data']->external_link }}"
+                                            >
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
                                             <form action="{{ route('courses.materials.destroy', [$course, $item['data']]) }}" method="POST" onsubmit="return confirm('Hapus materi ini?')">
                                                 @csrf
                                                 @method('DELETE')
@@ -135,6 +144,18 @@
                                         </div>
                                     </div>
                                     <div class="mt-2 md:mt-0 flex gap-2">
+                                        @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
+                                            <button 
+                                                class="text-blue-400 hover:text-blue-300 edit-assignment-btn"
+                                                data-id="{{ $item['data']->id }}"
+                                                data-title="{{ $item['data']->title }}"
+                                                data-description="{{ $item['data']->description }}"
+                                                data-link="{{ $item['data']->attachment_link }}"
+                                                data-due-date="{{ $item['data']->due_date }}"
+                                            >
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                        @endif
                                         <a href="{{ route('courses.assignments.show', [$course, $item['data']]) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-semibold flex items-center">
                                             <i class="bi bi-eye mr-1"></i>Lihat Detail
                                         </a>
@@ -296,5 +317,72 @@ function showAssignmentForm() {
 function showAllItems() {
     window.location.href = "{{ route('courses.show', $course) }}?show=all";
 }
+
+function showEditMaterialForm(id, title, description, link) {
+    const form = document.getElementById('editMaterialForm');
+    const formContent = document.getElementById('editMaterialFormContent');
+    const titleInput = document.getElementById('editMaterialTitle');
+    const descriptionInput = document.getElementById('editMaterialDescription');
+    const linkInput = document.getElementById('editMaterialLink');
+
+    formContent.action = `/courses/{{ $course->id }}/materials/${id}`;
+    titleInput.value = title;
+    descriptionInput.value = description;
+    linkInput.value = link || '';
+
+    form.classList.remove('hidden');
+    document.getElementById('materialForm').classList.add('hidden');
+    document.getElementById('assignmentForm').classList.add('hidden');
+    document.getElementById('editAssignmentForm').classList.add('hidden');
+}
+
+function hideEditMaterialForm() {
+    document.getElementById('editMaterialForm').classList.add('hidden');
+}
+
+function showEditAssignmentForm(id, title, description, link, dueDate) {
+    const form = document.getElementById('editAssignmentForm');
+    const formContent = document.getElementById('editAssignmentFormContent');
+    const titleInput = document.getElementById('editAssignmentTitle');
+    const descriptionInput = document.getElementById('editAssignmentDescription');
+    const linkInput = document.getElementById('editAssignmentLink');
+    const dueDateInput = document.getElementById('editAssignmentDueDate');
+
+    formContent.action = `/courses/{{ $course->id }}/assignments/${id}`;
+    titleInput.value = title;
+    descriptionInput.value = description;
+    linkInput.value = link || '';
+    dueDateInput.value = dueDate;
+
+    form.classList.remove('hidden');
+    document.getElementById('materialForm').classList.add('hidden');
+    document.getElementById('assignmentForm').classList.add('hidden');
+    document.getElementById('editMaterialForm').classList.add('hidden');
+}
+
+function hideEditAssignmentForm() {
+    document.getElementById('editAssignmentForm').classList.add('hidden');
+}
+
+document.querySelectorAll('.edit-material-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const id = this.dataset.id;
+        const title = this.dataset.title;
+        const description = this.dataset.description;
+        const link = this.dataset.link;
+        showEditMaterialForm(id, title, description, link);
+    });
+});
+
+document.querySelectorAll('.edit-assignment-btn').forEach(button => {
+    button.addEventListener('click', function() {
+        const id = this.dataset.id;
+        const title = this.dataset.title;
+        const description = this.dataset.description;
+        const link = this.dataset.link;
+        const dueDate = this.dataset.dueDate;
+        showEditAssignmentForm(id, title, description, link, dueDate);
+    });
+});
 </script>
 @endsection 
