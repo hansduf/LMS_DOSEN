@@ -37,6 +37,21 @@
                     </div>
 
                     <div>
+                        <label for="semester" class="block text-[#EBEBEB] mb-2">Semester</label>
+                        <select name="semester" id="semester" class="w-full px-4 py-2 bg-[#1E1F25] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500 custom-scrollbar" required>
+                            <option value="">Select Semester</option>
+                            <option value="1">Semester 1</option>
+                            <option value="2">Semester 2</option>
+                            <option value="3">Semester 3</option>
+                            <option value="4">Semester 4</option>
+                            <option value="5">Semester 5</option>
+                            <option value="6">Semester 6</option>
+                            <option value="7">Semester 7</option>
+                            <option value="8">Semester 8</option>
+                        </select>
+                    </div>
+
+                    <div>
                         <label for="class_color" class="block text-[#EBEBEB] mb-2">Class Color</label>
                         <select name="class_color" id="class_color" class="w-full px-4 py-2 bg-[#1E1F25] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500 custom-scrollbar" required>
                             <option value="">Select Color</option>

@@ -13,6 +13,7 @@ class Course extends Model
         'teacher_id',
         'course_code',
         'title',
+        'semester',
         'description',
         'thumbnail',
         'class_color',
@@ -25,7 +26,8 @@ class Course extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'start_time' => 'datetime',
-        'sks' => 'integer'
+        'sks' => 'integer',
+        'semester' => 'integer'
     ];
 
     public function teacher()

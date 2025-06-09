@@ -1,7 +1,7 @@
 @extends('template')
 
 @section('content')
-<div class="flex flex-col lg:flex-row gap-6 mt-[-20px] mr-[-33px] p-[10px] text-[#EBEBEB] transition-all duration-300">
+<div class="flex flex-col lg:flex-row gap-6 mt-6 mr-[-33px] p-[10px] text-[#EBEBEB] transition-all duration-300">
     <!-- Main Content -->
     <div class="flex-1 min-w-0">
         <!-- Materi & Tugas Section -->

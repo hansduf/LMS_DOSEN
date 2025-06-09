@@ -35,6 +35,7 @@ class CourseController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+            'semester' => 'required|integer|between:1,8',
             'description' => 'required|string',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'class_color' => 'required|string|in:blue-400,blue-500,blue-600,blue-700,green-400,green-500,green-600,green-700,purple-400,purple-500,purple-600,purple-700,pink-400,pink-500,pink-600,pink-700',
@@ -47,6 +48,7 @@ class CourseController extends Controller
         $course->teacher_id = Auth::user()->teacher->teacher_id;
         $course->course_code = $course->generateCourseCode();
         $course->title = $request->title;
+        $course->semester = $request->semester;
         $course->description = $request->description;
         $course->class_color = $request->class_color;
         $course->schedule_day = $request->schedule_day;
@@ -186,6 +188,7 @@ class CourseController extends Controller
 
         $request->validate([
             'title' => 'required|string|max:255',
+            'semester' => 'required|integer|between:1,8',
             'description' => 'required|string',
             'thumbnail' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'class_color' => 'required|string|in:blue-400,blue-500,blue-600,blue-700,green-400,green-500,green-600,green-700,purple-400,purple-500,purple-600,purple-700,pink-400,pink-500,pink-600,pink-700',
@@ -195,6 +198,7 @@ class CourseController extends Controller
         ]);
 
         $course->title = $request->title;
+        $course->semester = $request->semester;
         $course->description = $request->description;
         $course->class_color = $request->class_color;
         $course->schedule_day = $request->schedule_day;
