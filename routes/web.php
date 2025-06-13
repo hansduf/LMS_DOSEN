@@ -6,8 +6,18 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\ScheduleController;
 
+// API Test Routes
+Route::prefix('api')->group(function () {
+    Route::get('test', function () {
+        return response()->json([
+            'status' => 'success',
+            'message' => 'API test from web routes is working!'
+        ]);
+    });
+});
+
 // Authentication Routes
-Route::get('/', [AuthController::class, 'showLogin'])->name('login');
+Route::get('/', [AuthController::class, 'showLogin'])->name('login.show');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
