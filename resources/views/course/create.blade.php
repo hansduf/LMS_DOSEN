@@ -115,13 +115,18 @@
 
                 <div class="mt-6">
                     <label for="sks" class="block text-[#EBEBEB] mb-2">SKS</label>
-                    <select name="sks" id="sks" class="w-full px-4 py-2 bg-[#1E1F25] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500 custom-scrollbar" required>
-                        <option value="">Select SKS</option>
-                        <option value="1">1 SKS (40 minutes)</option>
-                        <option value="2">2 SKS (80 minutes)</option>
-                        <option value="3">3 SKS (120 minutes)</option>
-                        <option value="4">4 SKS (160 minutes)</option>
+                    <select name="sks" id="sks" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500" required>
+                        <option value="">Pilih SKS</option>
+                        <option value="1">1 SKS (40 menit)</option>
+                        <option value="2">2 SKS (80 menit)</option>
+                        <option value="3">3 SKS (120 menit)</option>
+                        <option value="4">4 SKS (160 menit)</option>
                     </select>
+                </div>
+
+                <div class="mb-4">
+                    <label for="location" class="block text-[#EBEBEB] mb-2">Lokasi Kelas</label>
+                    <input type="text" name="location" id="location" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500" placeholder="Contoh: Ruang 301, Gedung A" required>
                 </div>
             </div>
 

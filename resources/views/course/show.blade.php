@@ -1,6 +1,15 @@
 @extends('template')
 
 @section('content')
+<!-- Add meta tags for JavaScript data -->
+<meta name="course-id" content="{{ $course->id }}">
+<meta name="update-material-url" content="{{ route('courses.materials.update', ['course' => $course->id, 'material' => ':id']) }}">
+<meta name="update-assignment-url" content="{{ route('courses.assignments.update', ['course' => $course->id, 'assignment' => ':id']) }}">
+
+<!-- Add Flatpickr CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+
 <div class="flex flex-col lg:flex-row gap-6 mt-6 mr-[-33px] p-[10px] text-[#EBEBEB] transition-all duration-300">
     <!-- Main Content -->
     <div class="flex-1 min-w-0">
@@ -10,71 +19,154 @@
                 <h2 class="text-lg font-semibold flex items-center"><i class="bi bi-journal-text mr-2"></i> Materi & Tugas</h2>
                 @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
                     <div class="flex gap-2">
-                        <button onclick="showMaterialForm()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-semibold flex items-center">
+                        <button id="showMaterialBtn" onclick="showMaterialForm()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-semibold flex items-center">
                             <i class="bi bi-plus-lg mr-1"></i>Tambah Materi
                         </button>
-                        <button onclick="showAssignmentForm()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-semibold flex items-center">
+                        <button id="showAssignmentBtn" onclick="showAssignmentForm()" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs font-semibold flex items-center">
                             <i class="bi bi-plus-lg mr-1"></i>Buat Tugas
                         </button>
                     </div>
                 @endif
             </div>
 
-            <!-- Material Form (Hidden by default) -->
-            @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
-                <div id="materialForm" class="hidden mb-6">
-                    <form action="{{ route('courses.materials.store', $course) }}" method="POST">
+            <!-- Material Form -->
+            <div id="materialForm" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div class="bg-[#1E1F25]/95 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-[#EBEBEB]">Add New Material</h3>
+                        <button onclick="hideMaterialForm()" class="text-gray-400 hover:text-white">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <form action="{{ route('courses.materials.store', $course) }}" method="POST" class="max-h-[calc(90vh-8rem)] overflow-y-auto custom-scrollbar pr-2">
                         @csrf
-                        <div class="mb-3">
-                            <input type="text" name="title" class="w-full px-4 py-2 rounded bg-[#23242B] border border-[#2B2C32] text-[#EBEBEB] focus:outline-none" placeholder="Judul Materi" required>
+                        <div class="mb-4">
+                            <label for="title" class="block text-[#EBEBEB] mb-2">Title</label>
+                            <input type="text" name="title" id="title" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500" required>
                         </div>
-                        <div class="mb-3">
-                            <textarea name="description" class="w-full px-4 py-2 rounded bg-[#23242B] border border-[#2B2C32] text-[#EBEBEB] focus:outline-none" placeholder="Deskripsi materi" rows="2" required></textarea>
+                        <div class="mb-4">
+                            <label for="description" class="block text-[#EBEBEB] mb-2">Description</label>
+                            <textarea name="description" id="description" rows="3" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500" required></textarea>
                         </div>
-                        <div class="mb-3">
-                            <input type="url" name="external_link" class="w-full px-4 py-2 rounded bg-[#23242B] border border-[#2B2C32] text-[#EBEBEB] focus:outline-none" placeholder="Link materi (opsional)">
+                        <div class="mb-4">
+                            <label for="external_link" class="block text-[#EBEBEB] mb-2">External Link (Optional)</label>
+                            <input type="url" name="external_link" id="external_link" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500">
                         </div>
-                        <div class="flex justify-end">
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold flex items-center">
-                                <i class="bi bi-plus-lg mr-2"></i>Tambah
-                            </button>
+                        <div class="flex justify-end space-x-2 sticky bottom-0 bg-[#1E1F25] pt-4">
+                            <button type="button" onclick="hideMaterialForm()" class="px-4 py-2 text-gray-400 hover:text-gray-300">Cancel</button>
+                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Add Material</button>
                         </div>
                     </form>
                 </div>
-            @endif
+            </div>
 
-            <!-- Assignment Form (Hidden by default) -->
-            @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
-                <div id="assignmentForm" class="hidden mb-6">
-                    <form action="{{ route('courses.assignments.store', $course) }}" method="POST">
+            <!-- Edit Material Form -->
+            <div id="editMaterialForm" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div class="bg-[#1E1F25]/95 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-[#EBEBEB]">Edit Material</h3>
+                        <button onclick="hideEditMaterialForm()" class="text-gray-400 hover:text-white">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <form id="editMaterialFormContent" method="POST" class="max-h-[calc(90vh-8rem)] overflow-y-auto custom-scrollbar pr-2">
                         @csrf
-                        <div class="space-y-4">
-                            <div>
-                                <input type="text" name="title" class="w-full px-4 py-2 rounded bg-[#23242B] border border-[#2B2C32] text-[#EBEBEB] focus:outline-none" placeholder="Judul Tugas" required>
-                            </div>
-                            <div>
-                                <textarea name="description" class="w-full px-4 py-2 rounded bg-[#23242B] border border-[#2B2C32] text-[#EBEBEB] focus:outline-none" placeholder="Deskripsi tugas" rows="3" required></textarea>
-                            </div>
-                            <div>
-                                <label class="block text-gray-400 mb-1">Link Lampiran (Opsional)</label>
-                                <input type="url" name="attachment_link" class="w-full px-4 py-2 rounded bg-[#23242B] border border-[#2B2C32] text-[#EBEBEB] focus:outline-none" placeholder="https://...">
-                                <p class="text-xs text-gray-500 mt-1">Link untuk file lampiran tugas (opsional)</p>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-gray-400 mb-1">Batas Waktu</label>
-                                    <input type="datetime-local" name="due_date" class="w-full px-4 py-2 rounded bg-[#23242B] border border-[#2B2C32] text-[#EBEBEB] focus:outline-none" required>
-                                </div>
-                            </div>
-                            <div class="flex justify-end">
-                                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-semibold flex items-center">
-                                    <i class="bi bi-plus-lg mr-2"></i>Buat Tugas
-                                </button>
-                            </div>
+                        @method('PUT')
+                        <div class="mb-4">
+                            <label for="editMaterialTitle" class="block text-[#EBEBEB] mb-2">Title</label>
+                            <input type="text" name="title" id="editMaterialTitle" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="editMaterialDescription" class="block text-[#EBEBEB] mb-2">Description</label>
+                            <textarea name="description" id="editMaterialDescription" rows="3" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500" required></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label for="editMaterialLink" class="block text-[#EBEBEB] mb-2">External Link (Optional)</label>
+                            <input type="url" name="external_link" id="editMaterialLink" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div class="flex justify-end space-x-2 sticky bottom-0 bg-[#1E1F25] pt-4">
+                            <button type="button" onclick="hideEditMaterialForm()" class="px-4 py-2 text-gray-400 hover:text-gray-300">Cancel</button>
+                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Update Material</button>
                         </div>
                     </form>
                 </div>
-            @endif
+            </div>
+
+            <!-- Assignment Form -->
+            <div id="assignmentForm" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div class="bg-[#1E1F25]/95 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-[#EBEBEB]">Add New Assignment</h3>
+                        <button type="button" onclick="hideAssignmentForm()" class="text-gray-400 hover:text-white">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <form action="{{ route('courses.assignments.store', $course) }}" method="POST" class="max-h-[calc(90vh-8rem)] overflow-y-auto custom-scrollbar pr-2" id="assignmentFormContent">
+                        @csrf
+                        @if(session('error'))
+                            <div class="bg-red-500/10 border border-red-500 text-red-500 px-4 py-2 rounded mb-4">
+                                {{ session('error') }}
+                            </div>
+                        @endif
+                        <div class="mb-4">
+                            <label for="assignment_title" class="block text-[#EBEBEB] mb-2">Title</label>
+                            <input type="text" name="title" id="assignment_title" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="assignment_description" class="block text-[#EBEBEB] mb-2">Description</label>
+                            <textarea name="description" id="assignment_description" rows="3" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500" required></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label for="due_date" class="block text-[#EBEBEB] mb-2">Due Date</label>
+                            <input type="text" name="due_date" id="due_date" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500 flatpickr-input" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="attachment_link" class="block text-[#EBEBEB] mb-2">Attachment Link (Optional)</label>
+                            <input type="url" name="attachment_link" id="attachment_link" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div class="flex justify-end space-x-2 sticky bottom-0 bg-[#1E1F25] pt-4">
+                            <button type="button" onclick="hideAssignmentForm()" class="px-4 py-2 text-gray-400 hover:text-gray-300">Cancel</button>
+                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Add Assignment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Edit Assignment Form -->
+            <div id="editAssignmentForm" class="hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center">
+                <div class="bg-[#1E1F25]/95 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-hidden shadow-2xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-[#EBEBEB]">Edit Assignment</h3>
+                        <button onclick="hideEditAssignmentForm()" class="text-gray-400 hover:text-white">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                    <form id="editAssignmentFormContent" method="POST" class="max-h-[calc(90vh-8rem)] overflow-y-auto custom-scrollbar pr-2">
+                        @csrf
+                        @method('PUT')
+                        <div class="mb-4">
+                            <label for="editAssignmentTitle" class="block text-[#EBEBEB] mb-2">Title</label>
+                            <input type="text" name="title" id="editAssignmentTitle" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="editAssignmentDescription" class="block text-[#EBEBEB] mb-2">Description</label>
+                            <textarea name="description" id="editAssignmentDescription" rows="3" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500" required></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label for="editDueDate" class="block text-[#EBEBEB] mb-2">Due Date</label>
+                            <input type="text" name="due_date" id="editDueDate" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500 flatpickr-input" required>
+                        </div>
+                        <div class="mb-4">
+                            <label for="editAttachmentLink" class="block text-[#EBEBEB] mb-2">Attachment Link (Optional)</label>
+                            <input type="url" name="attachment_link" id="editAttachmentLink" class="w-full px-4 py-2 bg-[#12131A] border border-[#2B2C32] rounded-lg text-[#EBEBEB] focus:outline-none focus:border-blue-500">
+                        </div>
+                        <div class="flex justify-end space-x-2 sticky bottom-0 bg-[#1E1F25] pt-4">
+                            <button type="button" onclick="hideEditAssignmentForm()" class="px-4 py-2 text-gray-400 hover:text-gray-300">Cancel</button>
+                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Update Assignment</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
             <!-- Content List with Scrollbar -->
             <div class="max-h-[600px] overflow-y-auto custom-scrollbar">
@@ -89,79 +181,91 @@
                     @endif
                     @if($latestItems->count() > 0)
                         @foreach($latestItems as $item)
-                            @if($item['type'] === 'material')
-                                <div class="p-4 rounded-lg bg-[#23242B] flex flex-col md:flex-row md:items-center md:justify-between hover:bg-[#2B2C32] transition-colors duration-200">
-                                    <div>
-                                        <div class="text-base font-semibold mb-1 flex items-center">
-                                            <i class="bi bi-file-text mr-2 text-blue-400"></i>
-                                            {{ $item['data']->title }}
+                            <div class="bg-[#1E1F25] rounded-lg p-4">
+                                @if($item['type'] === 'material')
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <div class="flex items-center text-blue-400 mb-1">
+                                                <i class="bi bi-file-text mr-2"></i>
+                                                <span class="text-sm font-medium">Material</span>
+                                            </div>
+                                            <h4 class="text-[#EBEBEB] font-medium mb-1">{{ $item['data']->title }}</h4>
+                                            <p class="text-gray-400 text-sm mb-2">{{ $item['data']->description }}</p>
+                                            <div class="flex space-x-4">
+                                                @if($item['data']->external_link)
+                                                    <a href="{{ $item['data']->external_link }}" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm">
+                                                        <i class="bi bi-link-45deg"></i> View Material
+                                                    </a>
+                                                @endif
+                                                <a href="{{ route('courses.materials.show', [$course, $item['data']]) }}" class="text-blue-400 hover:text-blue-300 text-sm">
+                                                    <i class="bi bi-eye"></i> View Details
+                                                </a>
+                                            </div>
                                         </div>
-                                        <div class="text-sm text-gray-400 mb-1">{{ $item['data']->description }}</div>
-                                        @if($item['data']->external_link)
-                                            <a href="{{ $item['data']->external_link }}" target="_blank" class="text-blue-400 hover:underline text-xs flex items-center">
-                                                <i class="bi bi-link-45deg mr-1"></i>Link Materi
-                                            </a>
-                                        @endif
-                                        <div class="text-xs text-gray-400 mt-1">
-                                            <i class="bi bi-clock mr-1"></i>{{ $item['data']->created_at->format('d M Y H:i') }}
-                                        </div>
-                                    </div>
-                                    <div class="mt-2 md:mt-0 flex gap-2">
-                                        @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
+                                        <div class="flex space-x-2">
                                             <button 
                                                 class="text-blue-400 hover:text-blue-300 edit-material-btn"
                                                 data-id="{{ $item['data']->id }}"
                                                 data-title="{{ $item['data']->title }}"
                                                 data-description="{{ $item['data']->description }}"
-                                                data-link="{{ $item['data']->external_link }}"
+                                                data-external-link="{{ $item['data']->external_link }}"
                                             >
                                                 <i class="bi bi-pencil"></i>
                                             </button>
-                                            <form action="{{ route('courses.materials.destroy', [$course, $item['data']]) }}" method="POST" onsubmit="return confirm('Hapus materi ini?')">
+                                            <form action="{{ route('courses.materials.destroy', [$course, $item['data']]) }}" method="POST" class="inline">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button class="text-red-400 hover:text-red-300"><i class="bi bi-trash"></i></button>
+                                                <button type="submit" class="text-red-400 hover:text-red-300 delete-material-btn">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
                                             </form>
-                                        @endif
-                                    </div>
-                                </div>
-                            @else
-                                <div class="p-4 rounded-lg bg-[#23242B] flex flex-col md:flex-row md:items-center md:justify-between hover:bg-[#2B2C32] transition-colors duration-200">
-                                    <div>
-                                        <div class="text-base font-semibold mb-1 flex items-center">
-                                            <i class="bi bi-journal-text mr-2 text-green-400"></i>
-                                            {{ $item['data']->title }}
-                                        </div>
-                                        <div class="text-sm text-gray-400 mb-1">{{ Str::limit($item['data']->description, 100) }}</div>
-                                        @if($item['data']->attachment_link)
-                                            <a href="{{ $item['data']->attachment_link }}" target="_blank" class="text-green-400 hover:underline text-xs flex items-center mb-1">
-                                                <i class="bi bi-paperclip mr-1"></i>Lampiran Tugas
-                                            </a>
-                                        @endif
-                                        <div class="flex items-center gap-4 text-xs text-gray-400">
-                                            <span class="flex items-center"><i class="bi bi-clock mr-1"></i> {{ $item['data']->due_date->format('d M Y H:i') }}</span>
-                                            <span class="flex items-center"><i class="bi bi-calendar-plus mr-1"></i> {{ $item['data']->created_at->format('d M Y H:i') }}</span>
                                         </div>
                                     </div>
-                                    <div class="mt-2 md:mt-0 flex gap-2">
-                                        @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
+                                @else
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <div class="flex items-center text-green-400 mb-1">
+                                                <i class="bi bi-journal-text mr-2"></i>
+                                                <span class="text-sm font-medium">Assignment</span>
+                                            </div>
+                                            <h4 class="text-[#EBEBEB] font-medium mb-1">{{ $item['data']->title }}</h4>
+                                            <p class="text-gray-400 text-sm mb-2">{{ $item['data']->description }}</p>
+                                            <div class="text-sm text-gray-400 mb-2">
+                                                <i class="bi bi-clock"></i> Due: {{ \Carbon\Carbon::parse($item['data']->due_date)->format('M d, Y H:i') }}
+                                            </div>
+                                            <div class="flex space-x-4">
+                                                @if($item['data']->attachment_link)
+                                                    <a href="{{ $item['data']->attachment_link }}" target="_blank" class="text-green-400 hover:text-green-300 text-sm">
+                                                        <i class="bi bi-link-45deg"></i> View Assignment
+                                                    </a>
+                                                @endif
+                                                <a href="{{ route('courses.assignments.show', [$course, $item['data']]) }}" class="text-blue-400 hover:text-blue-300 text-sm">
+                                                    <i class="bi bi-eye"></i> View Details
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="flex space-x-2">
                                             <button 
-                                                class="text-blue-400 hover:text-blue-300 edit-assignment-btn"
+                                                class="text-green-400 hover:text-green-300 edit-assignment-btn"
                                                 data-id="{{ $item['data']->id }}"
                                                 data-title="{{ $item['data']->title }}"
                                                 data-description="{{ $item['data']->description }}"
-                                                data-link="{{ $item['data']->attachment_link }}"
                                                 data-due-date="{{ $item['data']->due_date }}"
+                                                data-attachment-link="{{ $item['data']->attachment_link }}"
                                             >
                                                 <i class="bi bi-pencil"></i>
                                             </button>
-                                        @endif
-                                        <a href="{{ route('courses.assignments.show', [$course, $item['data']]) }}" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-semibold flex items-center">
-                                            <i class="bi bi-eye mr-1"></i>Lihat Detail
-                                        </a>
+                                            <form action="{{ route('courses.assignments.destroy', [$course, $item['data']]) }}" method="POST" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="text-red-400 hover:text-red-300 delete-assignment-btn">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
-                                </div>
-                            @endif
+                                @endif
+                            </div>
                         @endforeach
                         @if(!$showAll && $course->materials()->count() + $course->assignments()->count() > 2)
                             <div class="text-center">
@@ -181,9 +285,9 @@
         <div class="bg-[#1E1F25] rounded-lg p-6 mb-6 shadow">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-semibold flex items-center"><i class="bi bi-clipboard-check mr-2"></i> Absensi</h2>
-                @if(isset($showAllAttendance) && $showAllAttendance)
-                    <a href="{{ route('courses.show', $course) }}" class="text-gray-400 hover:text-white flex items-center">
-                        <i class="bi bi-chevron-up mr-1"></i>Minimize
+                @if($attendances->count() > 0)
+                    <a href="{{ route('courses.attendance.all', $course) }}" class="text-blue-400 hover:text-blue-300 text-sm flex items-center">
+                        <i class="bi bi-list-ul mr-1"></i>Lihat Semua
                     </a>
                 @endif
             </div>
@@ -199,31 +303,52 @@
             <div class="max-h-[400px] overflow-y-auto custom-scrollbar">
                 @if(isset($attendances) && $attendances->count())
                     <div class="space-y-4">
-                        @foreach($attendances->take(isset($showAllAttendance) ? null : 2) as $attendance)
+                        @php
+                            $latestAttendance = $attendances->first();
+                            $nextClassTime = \Carbon\Carbon::parse($course->start_time);
+                            $currentDay = \Carbon\Carbon::now()->format('l');
+                            $isClassDay = $currentDay === $course->schedule_day;
+                            $isWithinTimeWindow = false;
+                            
+                            if ($isClassDay) {
+                                $timeWindowStart = $nextClassTime->copy()->subMinutes(15);
+                                $timeWindowEnd = $nextClassTime->copy()->addMinutes(30);
+                                $now = \Carbon\Carbon::now();
+                                $isWithinTimeWindow = $now->between($timeWindowStart, $timeWindowEnd);
+                            }
+                        @endphp
+                        
                         <div class="p-4 rounded-lg bg-[#23242B] flex flex-col md:flex-row md:items-center md:justify-between hover:bg-[#2B2C32] transition-colors duration-200">
                             <div>
-                                <div class="text-base font-semibold mb-1">{{ $attendance->title }}</div>
-                                <div class="text-xs text-gray-400 mb-1">Tanggal: {{ $attendance->created_at->format('d M Y H:i') }}</div>
+                                <div class="text-base font-semibold mb-1">{{ $latestAttendance->title }}</div>
+                                <div class="text-xs text-gray-400 mb-1">Tanggal: {{ $latestAttendance->created_at->format('d M Y H:i') }}</div>
+                                @if($isClassDay && $latestAttendance->created_at->isToday())
+                                    <div class="text-xs {{ $isWithinTimeWindow ? 'text-green-400' : 'text-yellow-400' }} mb-1">
+                                        <i class="bi bi-clock"></i> 
+                                        @if($isWithinTimeWindow)
+                                            Waktu absensi aktif ({{ $timeWindowStart->format('H:i') }} - {{ $timeWindowEnd->format('H:i') }})
+                                        @else
+                                            Jadwal absensi: {{ $course->schedule_day }}, {{ $nextClassTime->format('H:i') }}
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                             <div class="mt-2 md:mt-0 flex gap-2">
                                 @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
-                                    <a href="{{ route('courses.attendance.show', [$course, $attendance]) }}" class="text-blue-400 hover:underline text-xs flex items-center"><i class="bi bi-eye mr-1"></i>Lihat Data</a>
+                                    <a href="{{ route('courses.attendance.show', [$course, $latestAttendance]) }}" class="text-blue-400 hover:underline text-xs flex items-center"><i class="bi bi-eye mr-1"></i>Lihat Data</a>
                                 @else
-                                    <form action="{{ route('courses.attendance.submit', [$course, $attendance]) }}" method="POST">
+                                    <form action="{{ route('courses.attendance.submit', [$course, $latestAttendance]) }}" method="POST">
                                         @csrf
-                                        <button class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-semibold flex items-center"><i class="bi bi-check2 mr-1"></i>Isi Absensi</button>
+                                        <button 
+                                            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-semibold flex items-center {{ (!$isClassDay || !$isWithinTimeWindow || !$latestAttendance->created_at->isToday()) ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                            {{ (!$isClassDay || !$isWithinTimeWindow || !$latestAttendance->created_at->isToday()) ? 'disabled' : '' }}
+                                        >
+                                            <i class="bi bi-check2 mr-1"></i>Isi Absensi
+                                        </button>
                                     </form>
                                 @endif
                             </div>
                         </div>
-                        @endforeach
-                        @if(!isset($showAllAttendance) && $attendances->count() > 2)
-                            <div class="text-center">
-                                <a href="{{ route('courses.show', $course) }}?show=all_attendance" class="text-blue-400 hover:text-blue-300 text-sm flex items-center justify-center w-full">
-                                    <i class="bi bi-chevron-down mr-1"></i>Lihat Semua Absensi ({{ $attendances->count() }})
-                                </a>
-                            </div>
-                        @endif
                     </div>
                 @else
                     <div class="text-gray-400 text-center py-4">Belum ada absensi.</div>
@@ -244,6 +369,7 @@
             <div class="space-y-2">
                 <div class="flex items-center"><i class="bi bi-key text-gray-400 mr-2"></i> <span class="font-mono">{{ $course->course_code }}</span></div>
                 <div class="flex items-center"><i class="bi bi-calendar-event text-gray-400 mr-2"></i> {{ $course->schedule_day }}, {{ \Carbon\Carbon::parse($course->start_time)->format('H:i') }}</div>
+                <div class="flex items-center"><i class="bi bi-geo-alt text-gray-400 mr-2"></i> {{ $course->location }}</div>
                 <div class="flex items-center"><i class="bi bi-palette text-gray-400 mr-2"></i> <span class="rounded px-2 py-1 text-xs bg-{{ $course->class_color }}">{{ $course->class_color }}</span></div>
                 <div class="flex items-center"><i class="bi bi-collection text-gray-400 mr-2"></i> {{ $materials->count() ?? 0 }} Materi</div>
                 <div class="flex items-center"><i class="bi bi-journal-text text-gray-400 mr-2"></i> {{ $assignments->count() ?? 0 }} Tugas</div>
@@ -303,86 +429,112 @@
 }
 </style>
 
+<!-- Add Flatpickr JS -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{{ asset('js/course.js') }}" defer></script>
 <script>
-function showMaterialForm() {
-    document.getElementById('materialForm').classList.toggle('hidden');
-    document.getElementById('assignmentForm').classList.add('hidden');
-}
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Flatpickr for assignment form
+        flatpickr("#due_date", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            minDate: "today",
+            time_24hr: true,
+            theme: "dark",
+            locale: {
+                firstDayOfWeek: 1
+            }
+        });
 
-function showAssignmentForm() {
-    document.getElementById('assignmentForm').classList.toggle('hidden');
-    document.getElementById('materialForm').classList.add('hidden');
-}
+        // Initialize Flatpickr for edit assignment form
+        flatpickr("#editDueDate", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            theme: "dark",
+            locale: {
+                firstDayOfWeek: 1
+            }
+        });
 
-function showAllItems() {
-    window.location.href = "{{ route('courses.show', $course) }}?show=all";
-}
+        // Initialize course data
+        window.courseData = {
+            id: "{{ $course->id }}",
+            updateMaterialUrl: "{{ route('courses.materials.update', ['course' => $course->id, 'material' => ':id']) }}",
+            updateAssignmentUrl: "{{ route('courses.assignments.update', ['course' => $course->id, 'assignment' => ':id']) }}"
+        };
 
-function showEditMaterialForm(id, title, description, link) {
-    const form = document.getElementById('editMaterialForm');
-    const formContent = document.getElementById('editMaterialFormContent');
-    const titleInput = document.getElementById('editMaterialTitle');
-    const descriptionInput = document.getElementById('editMaterialDescription');
-    const linkInput = document.getElementById('editMaterialLink');
+        // Add event listeners for edit buttons
+        document.querySelectorAll('.edit-material-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const title = this.dataset.title;
+                const description = this.dataset.description;
+                const externalLink = this.dataset.externalLink;
+                showEditMaterialForm(id, title, description, externalLink);
+            });
+        });
 
-    formContent.action = `/courses/{{ $course->id }}/materials/${id}`;
-    titleInput.value = title;
-    descriptionInput.value = description;
-    linkInput.value = link || '';
+        document.querySelectorAll('.edit-assignment-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const title = this.dataset.title;
+                const description = this.dataset.description;
+                const dueDate = this.dataset.dueDate;
+                const attachmentLink = this.dataset.attachmentLink;
+                showEditAssignmentForm(id, title, description, dueDate, attachmentLink);
+            });
+        });
 
-    form.classList.remove('hidden');
-    document.getElementById('materialForm').classList.add('hidden');
-    document.getElementById('assignmentForm').classList.add('hidden');
-    document.getElementById('editAssignmentForm').classList.add('hidden');
-}
+        // Add event listeners for create buttons
+        const showMaterialBtn = document.getElementById('showMaterialBtn');
+        const showAssignmentBtn = document.getElementById('showAssignmentBtn');
 
-function hideEditMaterialForm() {
-    document.getElementById('editMaterialForm').classList.add('hidden');
-}
+        if (showMaterialBtn) {
+            showMaterialBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                showMaterialForm();
+            });
+        }
 
-function showEditAssignmentForm(id, title, description, link, dueDate) {
-    const form = document.getElementById('editAssignmentForm');
-    const formContent = document.getElementById('editAssignmentFormContent');
-    const titleInput = document.getElementById('editAssignmentTitle');
-    const descriptionInput = document.getElementById('editAssignmentDescription');
-    const linkInput = document.getElementById('editAssignmentLink');
-    const dueDateInput = document.getElementById('editAssignmentDueDate');
+        if (showAssignmentBtn) {
+            showAssignmentBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                showAssignmentForm();
+            });
+        }
 
-    formContent.action = `/courses/{{ $course->id }}/assignments/${id}`;
-    titleInput.value = title;
-    descriptionInput.value = description;
-    linkInput.value = link || '';
-    dueDateInput.value = dueDate;
-
-    form.classList.remove('hidden');
-    document.getElementById('materialForm').classList.add('hidden');
-    document.getElementById('assignmentForm').classList.add('hidden');
-    document.getElementById('editMaterialForm').classList.add('hidden');
-}
-
-function hideEditAssignmentForm() {
-    document.getElementById('editAssignmentForm').classList.add('hidden');
-}
-
-document.querySelectorAll('.edit-material-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const id = this.dataset.id;
-        const title = this.dataset.title;
-        const description = this.dataset.description;
-        const link = this.dataset.link;
-        showEditMaterialForm(id, title, description, link);
+        // Add form submission handler
+        const assignmentForm = document.getElementById('assignmentFormContent');
+        if (assignmentForm) {
+            assignmentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form data
+                const formData = new FormData(this);
+                
+                // Send AJAX request
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert(data.message || 'Error creating assignment');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error creating assignment');
+                });
+            });
+        }
     });
-});
-
-document.querySelectorAll('.edit-assignment-btn').forEach(button => {
-    button.addEventListener('click', function() {
-        const id = this.dataset.id;
-        const title = this.dataset.title;
-        const description = this.dataset.description;
-        const link = this.dataset.link;
-        const dueDate = this.dataset.dueDate;
-        showEditAssignmentForm(id, title, description, link, dueDate);
-    });
-});
 </script>
 @endsection 

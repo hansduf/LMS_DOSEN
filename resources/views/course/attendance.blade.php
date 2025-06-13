@@ -3,94 +3,77 @@
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-[#EBEBEB]">{{ $attendance->title }}</h1>
+        <h1 class="text-2xl font-semibold text-[#EBEBEB]">Semua Absensi - {{ $course->title }}</h1>
         <a href="{{ route('courses.show', $course) }}" class="text-blue-400 hover:text-blue-300 flex items-center">
-            <i class="bi bi-arrow-left mr-2"></i> Kembali ke Kelas
+            <i class="bi bi-arrow-left mr-2"></i>Kembali ke Kelas
         </a>
     </div>
 
     <div class="bg-[#1E1F25] rounded-lg p-6 shadow">
-        <div class="mb-6">
-            <h2 class="text-lg font-semibold text-[#EBEBEB] mb-4">Detail Absensi</h2>
-            <div class="grid grid-cols-2 gap-4 text-[#EBEBEB]">
-                <div>
-                    <p class="text-gray-400">Tanggal Dibuat</p>
-                    <p>{{ $attendance->created_at->format('d M Y H:i') }}</p>
+        @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
+            <form action="{{ route('courses.attendance.store', $course) }}" method="POST" class="mb-6">
+                @csrf
+                <div class="flex gap-2">
+                    <input type="text" name="attendance_title" class="w-full px-4 py-2 rounded bg-[#23242B] border border-[#2B2C32] text-[#EBEBEB] focus:outline-none" placeholder="Judul Absensi (misal: Pertemuan 1)" required>
+                    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-semibold flex items-center"><i class="bi bi-plus-lg mr-2"></i>Buat</button>
                 </div>
-                <div>
-                    <p class="text-gray-400">Total Peserta</p>
-                    <p>{{ $submissions->count() }} dari {{ $course->students->count() }} murid</p>
-                </div>
-                <div>
-                    <p class="text-gray-400">Batas Waktu</p>
-                    <p>{{ $attendance->created_at->addMinutes(30)->format('d M Y H:i') }}</p>
-                </div>
-            </div>
-        </div>
+            </form>
+        @endif
 
-        <div class="overflow-x-auto">
-            <div class="max-h-[600px] overflow-y-auto custom-scrollbar">
-                <table class="w-full">
-                    <thead class="sticky top-0 bg-[#1E1F25] z-10">
-                        <tr class="text-left border-b border-[#2B2C32]">
-                            <th class="pb-3 text-[#EBEBEB]">Nama Murid</th>
-                            <th class="pb-3 text-[#EBEBEB]">Status</th>
-                            <th class="pb-3 text-[#EBEBEB]">Waktu Submit</th>
-                            @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
-                                <th class="pb-3 text-[#EBEBEB]">Aksi</th>
-                            @endif
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($submissions as $submission)
-                            <tr class="border-b border-[#2B2C32]">
-                                <td class="py-3 text-[#EBEBEB]">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center text-white font-bold">
-                                            {{ strtoupper(substr($submission->student->name, 0, 1)) }}
-                                        </div>
-                                        <div>
-                                            <div class="font-medium">{{ $submission->student->name }}</div>
-                                            <div class="text-sm text-gray-400">{{ $submission->student->email }}</div>
-                                        </div>
+        <div class="max-h-[calc(100vh-300px)] overflow-y-auto custom-scrollbar pr-2">
+            @if($attendances->count() > 0)
+                <div class="space-y-4">
+                    @php
+                        $nextClassTime = \Carbon\Carbon::parse($course->start_time);
+                        $currentDay = \Carbon\Carbon::now()->format('l');
+                        $isClassDay = $currentDay === $course->schedule_day;
+                        $isWithinTimeWindow = false;
+                        
+                        if ($isClassDay) {
+                            $timeWindowStart = $nextClassTime->copy()->subMinutes(15);
+                            $timeWindowEnd = $nextClassTime->copy()->addMinutes(30);
+                            $now = \Carbon\Carbon::now();
+                            $isWithinTimeWindow = $now->between($timeWindowStart, $timeWindowEnd);
+                        }
+                    @endphp
+
+                    @foreach($attendances as $attendance)
+                        <div class="p-4 rounded-lg bg-[#23242B] flex flex-col md:flex-row md:items-center md:justify-between hover:bg-[#2B2C32] transition-colors duration-200">
+                            <div>
+                                <div class="text-base font-semibold mb-1">{{ $attendance->title }}</div>
+                                <div class="text-xs text-gray-400 mb-1">Tanggal: {{ $attendance->created_at->format('d M Y H:i') }}</div>
+                                @if($isClassDay && $attendance->created_at->isToday())
+                                    <div class="text-xs {{ $isWithinTimeWindow ? 'text-green-400' : 'text-yellow-400' }} mb-1">
+                                        <i class="bi bi-clock"></i> 
+                                        @if($isWithinTimeWindow)
+                                            Waktu absensi aktif ({{ $timeWindowStart->format('H:i') }} - {{ $timeWindowEnd->format('H:i') }})
+                                        @else
+                                            Jadwal absensi: {{ $course->schedule_day }}, {{ $nextClassTime->format('H:i') }}
+                                        @endif
                                     </div>
-                                </td>
-                                <td class="py-3">
-                                    <span class="px-2 py-1 rounded text-xs font-medium
-                                        @if($submission->status === 'present') bg-green-500/20 text-green-400
-                                        @elseif($submission->status === 'late') bg-yellow-500/20 text-yellow-400
-                                        @else bg-red-500/20 text-red-400 @endif">
-                                        {{ ucfirst($submission->status) }}
-                                    </span>
-                                </td>
-                                <td class="py-3 text-[#EBEBEB]">{{ $submission->created_at->format('d M Y H:i') }}</td>
-                                @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
-                                    <td class="py-3">
-                                        <div class="flex items-center gap-2">
-                                            <form action="{{ route('courses.attendance.update-status', [$course, $attendance, $submission]) }}" method="POST" class="flex gap-2">
-                                                @csrf
-                                                @method('PUT')
-                                                <select name="status" class="bg-[#23242B] border border-[#2B2C32] text-[#EBEBEB] rounded px-2 py-1 text-sm">
-                                                    <option value="present" {{ $submission->status === 'present' ? 'selected' : '' }}>Hadir</option>
-                                                    <option value="late" {{ $submission->status === 'late' ? 'selected' : '' }}>Terlambat</option>
-                                                    <option value="absent" {{ $submission->status === 'absent' ? 'selected' : '' }}>Alpha</option>
-                                                </select>
-                                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs">
-                                                    Update
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
                                 @endif
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="py-4 text-center text-gray-400">Belum ada yang mengisi absensi</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+                            <div class="mt-2 md:mt-0 flex gap-2">
+                                @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
+                                    <a href="{{ route('courses.attendance.show', [$course, $attendance]) }}" class="text-blue-400 hover:underline text-xs flex items-center"><i class="bi bi-eye mr-1"></i>Lihat Data</a>
+                                @else
+                                    <form action="{{ route('courses.attendance.submit', [$course, $attendance]) }}" method="POST">
+                                        @csrf
+                                        <button 
+                                            class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs font-semibold flex items-center {{ (!$isClassDay || !$isWithinTimeWindow || !$attendance->created_at->isToday()) ? 'opacity-50 cursor-not-allowed' : '' }}"
+                                            {{ (!$isClassDay || !$isWithinTimeWindow || !$attendance->created_at->isToday()) ? 'disabled' : '' }}
+                                        >
+                                            <i class="bi bi-check2 mr-1"></i>Isi Absensi
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-gray-400 text-center py-4">Belum ada absensi.</div>
+            @endif
         </div>
     </div>
 </div>

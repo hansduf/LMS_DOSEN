@@ -50,9 +50,15 @@
                         </div>
                         <div class="flex justify-between text-gray-400 text-xs">
                             <div class="flex items-center">
+                                <i class="bi bi-geo-alt mr-1"></i>
+                                {{ $course->location }}
+                            </div>
+                            <div class="flex items-center">
                                 <i class="bi bi-file-text mr-1"></i>
                                 {{ $course->materials->count() }} Materials
                             </div>
+                        </div>
+                        <div class="flex justify-between text-gray-400 text-xs">
                             <div class="flex items-center">
                                 <i class="bi bi-journal-text mr-1"></i>
                                 {{ $course->assignments->count() }} Assignments

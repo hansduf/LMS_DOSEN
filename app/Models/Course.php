@@ -20,6 +20,7 @@ class Course extends Model
         'schedule_day',
         'start_time',
         'sks',
+        'location',
         'is_active'
     ];
 

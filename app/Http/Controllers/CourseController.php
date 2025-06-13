@@ -41,7 +41,8 @@ class CourseController extends Controller
             'class_color' => 'required|string|in:blue-400,blue-500,blue-600,blue-700,green-400,green-500,green-600,green-700,purple-400,purple-500,purple-600,purple-700,pink-400,pink-500,pink-600,pink-700',
             'schedule_day' => 'required|string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
             'start_time' => 'required|date_format:H:i',
-            'sks' => 'required|integer|in:1,2,3,4'
+            'sks' => 'required|integer|in:1,2,3,4',
+            'location' => 'required|string|max:255'
         ]);
 
         $course = new Course();
@@ -54,6 +55,7 @@ class CourseController extends Controller
         $course->schedule_day = $request->schedule_day;
         $course->start_time = $request->start_time;
         $course->sks = $request->sks;
+        $course->location = $request->location;
 
         if ($request->hasFile('thumbnail')) {
             $path = $request->file('thumbnail')->store('course-thumbnails', 'public');
@@ -194,7 +196,8 @@ class CourseController extends Controller
             'class_color' => 'required|string|in:blue-400,blue-500,blue-600,blue-700,green-400,green-500,green-600,green-700,purple-400,purple-500,purple-600,purple-700,pink-400,pink-500,pink-600,pink-700',
             'schedule_day' => 'required|string|in:Monday,Tuesday,Wednesday,Thursday,Friday,Saturday',
             'start_time' => 'required|date_format:H:i',
-            'sks' => 'required|integer|in:1,2,3,4'
+            'sks' => 'required|integer|in:1,2,3,4',
+            'location' => 'required|string|max:255'
         ]);
 
         $course->title = $request->title;
@@ -204,6 +207,7 @@ class CourseController extends Controller
         $course->schedule_day = $request->schedule_day;
         $course->start_time = $request->start_time;
         $course->sks = $request->sks;
+        $course->location = $request->location;
 
         if ($request->hasFile('thumbnail')) {
             if ($course->thumbnail) {
@@ -307,6 +311,19 @@ class CourseController extends Controller
             ->with('success', 'Materi berhasil diperbarui');
     }
 
+    public function showMaterial(Course $course, Material $material)
+    {
+        // Check if the material belongs to the course
+        if ($material->course_id !== $course->id) {
+            abort(404);
+        }
+
+        return view('course.material', [
+            'course' => $course,
+            'material' => $material
+        ]);
+    }
+
     // Attendance Methods
     public function storeAttendance(Request $request, Course $course)
     {
@@ -339,7 +356,7 @@ class CourseController extends Controller
             }
         }
 
-        return view('course.attendance', compact('course', 'attendance', 'submissions'));
+        return view('course.attendance-detail', compact('course', 'attendance', 'submissions'));
     }
 
     public function updateAttendanceStatus(Request $request, Course $course, Attendance $attendance, AttendanceSubmission $submission)
@@ -357,27 +374,55 @@ class CourseController extends Controller
         return back()->with('success', 'Status absensi berhasil diperbarui');
     }
 
+    public function attendance(Course $course)
+    {
+        $this->authorize('view', $course);
+        $attendances = $course->attendances()->orderBy('created_at', 'desc')->get();
+        return view('course.attendance', compact('course', 'attendances'));
+    }
+
     // Assignment Methods
     public function storeAssignment(Request $request, Course $course)
     {
-        $this->authorize('update', $course);
+        try {
+            $this->authorize('update', $course);
 
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'due_date' => 'required|date|after:now',
-            'attachment_link' => 'nullable|url'
-        ]);
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'due_date' => 'required|date|after:now',
+                'attachment_link' => 'nullable|url'
+            ]);
 
-        $assignment = $course->assignments()->create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'due_date' => $request->due_date,
-            'attachment_link' => $request->attachment_link
-        ]);
+            $assignment = $course->assignments()->create([
+                'title' => $request->title,
+                'description' => $request->description,
+                'due_date' => $request->due_date,
+                'attachment_link' => $request->attachment_link
+            ]);
 
-        return redirect()->route('courses.show', $course)
-            ->with('success', 'Tugas berhasil dibuat');
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Tugas berhasil dibuat',
+                    'assignment' => $assignment
+                ]);
+            }
+
+            return redirect()->route('courses.show', $course)
+                ->with('success', 'Tugas berhasil dibuat');
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 422);
+            }
+
+            return redirect()->back()
+                ->with('error', $e->getMessage())
+                ->withInput();
+        }
     }
 
     public function submitAssignment(Request $request, Course $course, Assignment $assignment)
@@ -433,6 +478,16 @@ class CourseController extends Controller
         return view('course.assignment', compact('course', 'assignment', 'submissions', 'studentSubmission'));
     }
 
+    public function destroyAssignment(Course $course, Assignment $assignment)
+    {
+        $this->authorize('update', $course);
+
+        $assignment->delete();
+
+        return redirect()->route('courses.show', $course)
+            ->with('success', 'Assignment berhasil dihapus');
+    }
+
     public function updateAssignment(Request $request, Course $course, Assignment $assignment)
     {
         $this->authorize('update', $course);
@@ -440,7 +495,7 @@ class CourseController extends Controller
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'due_date' => 'required|date|after:now',
+            'due_date' => 'required|date',
             'attachment_link' => 'nullable|url'
         ]);
 
@@ -452,6 +507,6 @@ class CourseController extends Controller
         ]);
 
         return redirect()->route('courses.show', $course)
-            ->with('success', 'Tugas berhasil diperbarui');
+            ->with('success', 'Assignment berhasil diperbarui');
     }
 } 

@@ -2,63 +2,64 @@
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-semibold text-[#EBEBEB]">Semua Materi - {{ $course->title }}</h1>
-        <a href="{{ route('courses.show', $course) }}" class="text-blue-400 hover:text-blue-300 flex items-center">
-            <i class="bi bi-arrow-left mr-2"></i>Kembali ke Kelas
-        </a>
-    </div>
+    <div class="max-w-4xl mx-auto">
+        <!-- Back Button -->
+        <div class="mb-6">
+            <a href="{{ route('courses.show', $course) }}" class="text-blue-400 hover:text-blue-300 flex items-center">
+                <i class="bi bi-arrow-left mr-2"></i> Back to Course
+            </a>
+        </div>
 
-    <div class="space-y-4">
-        @forelse($materials as $material)
-            <div class="bg-[#1E1F25] rounded-lg p-6">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <div class="flex items-center text-blue-400 mb-2">
-                            <i class="bi bi-file-text mr-2"></i>
-                            <span class="text-sm font-medium">Material</span>
-                        </div>
-                        <h2 class="text-xl font-semibold text-[#EBEBEB] mb-2">{{ $material->title }}</h2>
-                        <p class="text-gray-400 text-sm mb-2">{{ $material->description }}</p>
-                        <div class="flex space-x-4">
-                            @if($material->external_link)
-                                <a href="{{ $material->external_link }}" target="_blank" class="text-blue-400 hover:text-blue-300 text-sm">
-                                    <i class="bi bi-link-45deg"></i> View Material
-                                </a>
-                            @endif
-                            <a href="{{ route('courses.materials.show', [$course, $material]) }}" class="text-blue-400 hover:text-blue-300 text-sm">
-                                <i class="bi bi-eye"></i> View Details
-                            </a>
-                        </div>
-                        <div class="text-sm text-gray-400 mt-2">
-                            <i class="bi bi-clock mr-1"></i> Posted: {{ $material->created_at->format('M d, Y H:i') }}
-                        </div>
+        <!-- Material Details -->
+        <div class="bg-[#1E1F25] rounded-lg p-6 shadow">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <div class="flex items-center text-blue-400 mb-2">
+                        <i class="bi bi-file-text mr-2"></i>
+                        <span class="text-sm font-medium">Material</span>
                     </div>
-                    @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
-                        <div class="flex space-x-2">
-                            <button 
-                                class="text-blue-400 hover:text-blue-300 edit-material-btn"
-                                data-id="{{ $material->id }}"
-                                data-title="{{ $material->title }}"
-                                data-description="{{ $material->description }}"
-                                data-external-link="{{ $material->external_link }}"
-                            >
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <form action="{{ route('courses.materials.destroy', [$course, $material]) }}" method="POST" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-400 hover:text-red-300 delete-material-btn">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
-                        </div>
-                    @endif
+                    <h1 class="text-2xl font-semibold text-[#EBEBEB] mb-2">{{ $material->title }}</h1>
+                    <div class="text-sm text-gray-400">
+                        <i class="bi bi-clock mr-1"></i> Posted: {{ $material->created_at->format('M d, Y H:i') }}
+                    </div>
                 </div>
+                @if(auth()->user()->teacher && auth()->user()->teacher->teacher_id === $course->teacher_id)
+                    <div class="flex space-x-2">
+                        <button 
+                            class="text-blue-400 hover:text-blue-300 edit-material-btn"
+                            data-id="{{ $material->id }}"
+                            data-title="{{ $material->title }}"
+                            data-description="{{ $material->description }}"
+                            data-external-link="{{ $material->external_link }}"
+                        >
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form action="{{ route('courses.materials.destroy', [$course, $material]) }}" method="POST" class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-400 hover:text-red-300 delete-material-btn">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                @endif
             </div>
-        @empty
-            <div class="text-gray-400 text-center py-4">Belum ada materi.</div>
-        @endforelse
+
+            <!-- Material Content -->
+            <div class="prose prose-invert max-w-none">
+                <div class="text-[#EBEBEB] mb-6">
+                    {{ $material->description }}
+                </div>
+
+                @if($material->external_link)
+                    <div class="mt-6">
+                        <a href="{{ $material->external_link }}" target="_blank" class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg">
+                            <i class="bi bi-link-45deg mr-2"></i> View Material
+                        </a>
+                    </div>
+                @endif
+            </div>
+        </div>
     </div>
 </div>
 

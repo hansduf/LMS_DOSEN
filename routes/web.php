@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\ScheduleController;
 
 // Authentication Routes
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
@@ -28,8 +29,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/courses/join', [CourseController::class, 'join'])->name('courses.join');
 
     // Course Materials Routes
+    Route::get('/courses/{course}/materials', [CourseController::class, 'materials'])->name('courses.materials.index');
+    Route::get('/courses/{course}/materials/{material}', [CourseController::class, 'showMaterial'])->name('courses.materials.show');
     Route::post('/courses/{course}/materials', [CourseController::class, 'storeMaterial'])->name('courses.materials.store');
     Route::delete('/courses/{course}/materials/{material}', [CourseController::class, 'destroyMaterial'])->name('courses.materials.destroy');
+    Route::put('/courses/{course}/materials/{material}', [CourseController::class, 'updateMaterial'])->name('courses.materials.update');
     Route::get('/courses/{course}/materials', [CourseController::class, 'showAllMaterials'])->name('courses.materials.all');
 
     // Course Attendance Routes
@@ -37,6 +41,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/courses/{course}/attendance/{attendance}', [CourseController::class, 'showAttendance'])->name('courses.attendance.show');
     Route::post('/courses/{course}/attendance/{attendance}/submit', [CourseController::class, 'submitAttendance'])->name('courses.attendance.submit');
     Route::put('/courses/{course}/attendance/{attendance}/submission/{submission}', [CourseController::class, 'updateAttendanceStatus'])->name('courses.attendance.update-status');
+    Route::get('/courses/{course}/attendance', [CourseController::class, 'attendance'])->name('courses.attendance.all');
 
     // Course Assignment Routes
     Route::post('/courses/{course}/assignments', [CourseController::class, 'storeAssignment'])->name('courses.assignments.store');
@@ -44,6 +49,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/courses/{course}/assignments/{assignment}/submit', [CourseController::class, 'submitAssignment'])->name('courses.assignments.submit');
     Route::put('/courses/{course}/assignments/{assignment}/submissions/{submission}/grade', [CourseController::class, 'gradeAssignment'])->name('courses.assignments.grade');
     Route::get('/courses/{course}/assignments', [CourseController::class, 'showAllAssignments'])->name('courses.assignments.all');
+    Route::delete('/courses/{course}/assignments/{assignment}', [CourseController::class, 'destroyAssignment'])->name('courses.assignments.destroy');
+    Route::put('/courses/{course}/assignments/{assignment}', [CourseController::class, 'updateAssignment'])->name('courses.assignments.update');
 
     Route::get('/presence', function () {
         return view('presence.presence');
@@ -53,9 +60,7 @@ Route::middleware(['auth'])->group(function () {
         return view('resources.resources');
     })->name('resources');
 
-    Route::get('/schedule', function () {
-        return view('schedule.schedule');
-    })->name('schedule');
+    Route::get('/schedule', [ScheduleController::class, 'index'])->name('schedule');
 
     Route::get('/students', function () {
         return view('students.students');
